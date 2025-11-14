@@ -1,211 +1,201 @@
-// File: app/pro/page.jsx
-
 "use client"
-import { useState } from 'react'
+
+import { useState } from "react"
+import ControlsPanel from "./components/ControlsPanel"
+import PromptList from "./components/PromptList"
 
 export default function ProPage() {
-  const [subject, setSubject] = useState('')
-  const [studio, setStudio] = useState('random')
-  const [lighting, setLighting] = useState('random')
-  const [weather, setWeather] = useState('random')
-  const [camera, setCamera] = useState('random')
-  const [tone, setTone] = useState('random')
-  const [variationMode, setVariationMode] = useState(true)
-  const [useEnhancers, setUseEnhancers] = useState(true)
+  const [subject, setSubject] = useState("")
+  const [mode, setMode] = useState("image") // image | 2d | 3d
+  const [studio, setStudio] = useState("random")
+  const [lighting, setLighting] = useState("random")
+  const [weather, setWeather] = useState("random")
+  const [camera, setCamera] = useState("random")
+  const [lens, setLens] = useState("50mm")
+  const [tone, setTone] = useState("random")
+  const [preset, setPreset] = useState("none")
+  const [duration, setDuration] = useState(6) // seconds for animation
+  const [fps, setFps] = useState(30)
+  const [easing, setEasing] = useState("smooth")
+  const [physics, setPhysics] = useState(true)
+  const [grain, setGrain] = useState(0.4)
+  const [bloom, setBloom] = useState(0.3)
+  const [saturation, setSaturation] = useState(0)
   const [prompts, setPrompts] = useState([])
   const [copied, setCopied] = useState(false)
 
-  const studios = [
-    'Universal .com', 'Warner Bros .com', 'Paramount .com', 'Sony Pictures .com',
-    '20thcenturystudios .com', 'Disney .com', 'DreamWorks .com', 'Lionsgate .com',
-    'Netflix .com', 'A24 .com', 'Columbia .com'
-  ]
+  // Small lookup lists (kept concise here for clarity)
+  const studios = ["Universal .com","A24 .com","Warner Bros .com","Disney .com","Netflix .com","Paramount .com","Sony Pictures .com"]
+  const lightings = ["golden hour","neon night","overcast soft","candlelit low","studio key & fill","volumetric backlight"]
+  const weathers = ["clear","light rain","heavy rain","fog","sandstorm","snow"]
+  const cameras = ["ARRI Alexa 65","RED Komodo 6K","Sony Venice 2","Leica SL2","Panavision DXL2","Blackmagic URSA 12K"]
+  const tones = ["epic","melancholic","dreamlike","ominous","heroic","intimate"]
+  const presets = {
+    "none": {},
+    "indie-melancholy": {studio:"A24 .com", lighting:"overcast soft", weather:"light rain", tone:"melancholic"},
+    "epic-heroic": {studio:"Universal .com", lighting:"golden hour", weather:"clear", tone:"heroic"},
+    "neon-sci": {studio:"Sony Pictures .com", lighting:"neon night", weather:"light rain", tone:"dreamlike"},
+    "ghibli-2d": {studio:"Studio Ghibli .com", lighting:"golden hour", weather:"clear", tone:"dreamlike"},
+  }
 
-  const lightings = [
-    'golden hour', 'overcast soft', 'neon night', 'high noon hard light', 'candlelit low',
-    'twilight rim', 'studio key and fill', 'volumetric backlight', 'foggy diffuse'
-  ]
-
-  const weathers = [
-    'clear sky', 'light rain', 'heavy rain', 'sandstorm', 'windy dust', 'dense fog', 'drifting snow'
-  ]
-
-  const cameras = [
-    'ARRI Alexa 65, Zeiss 50mm', 'RED Komodo 6K, Canon 85mm', 'Sony Venice 2, Atlas 40mm anamorphic',
-    'Leica SL2, Summilux 35mm', 'Panavision DXL2, Cooke S4/i 75mm', 'Blackmagic URSA 12K, Fujinon 80mm'
-  ]
-
-  const tones = [
-    'tragic', 'heroic', 'dreamlike', 'ominous', 'melancholic', 'epic', 'intimate'
-  ]
-
-  const enhancersPool = [
-    'archival film still scan', 'cinema negative scan, 35mm log profile', 'Kodak Vision3 stock',
-    'IMAX 70mm plate feel', 'cinematic backlight diffusion', 'neon spill reflections, volumetric dust rays',
-    'film grain texture, halation glow', 'ungraded log footage aesthetic', 'shallow depth of field, bokeh'
-  ]
+  function applyPreset(name) {
+    if (name === "none") return
+    const p = presets[name] || {}
+    if (p.studio) setStudio(p.studio)
+    if (p.lighting) setLighting(p.lighting)
+    if (p.weather) setWeather(p.weather)
+    if (p.tone) setTone(p.tone)
+  }
 
   function choose(list, forced) {
-    if (forced && forced !== 'random') return forced
-    return list[Math.floor(Math.random() * list.length)]
+    if (forced && forced !== "random") return forced
+    return list[Math.floor(Math.random()*list.length)]
   }
 
-  function pickEnhancers() {
-    const shuffled = enhancersPool.sort(() => 0.5 - Math.random())
-    return shuffled.slice(0, 3).join(', ')
-  }
+  function buildPromptVariant(idx) {
+    const s = choose(studios, studio)
+    const l = choose(lightings, lighting)
+    const w = choose(weathers, weather)
+    const c = choose(cameras, camera)
+    const t = choose(tones, tone)
 
-  function buildSinglePrompt(idx, baseStudio, baseLighting, baseWeather, baseCamera, baseTone) {
-    const s = choose(studios, baseStudio)
-    const l = choose(lightings, baseLighting)
-    const w = choose(weathers, baseWeather)
-    const c = choose(cameras, baseCamera)
-    const t = choose(tones, baseTone)
-
-    const actionVariants = [
-      'walking across a vast wasteland',
-      'trudging through cracked desert',
-      'standing on a ridge and facing the wind',
-      'stumbling through a ruined city street',
-      'gazing at a distant ruined skyline',
-      'silhouetted against a low sun' 
+    // base action variations (index-based)
+    const actions = [
+      "walking across a vast wasteland",
+      "trudging through cracked desert",
+      "standing on a ridge facing the wind",
+      "stumbling through a ruined city street",
+      "gazing at a distant ruined skyline",
+      "silhouetted against a low sun",
+      "caught in a gust of sand and dust",
+      "bracing against heavy wind",
+      "pausing while scanning the horizon",
+      "tracing footsteps across empty plains"
     ]
+    const action = actions[idx % actions.length]
 
-    const action = variationMode ? actionVariants[idx % actionVariants.length] : actionVariants[0]
+    // Common token block
+    const filmTokens = `35mm film texture, film grain ${+grain.toFixed(2)}, bloom ${+bloom.toFixed(2)}, saturation ${+saturation.toFixed(2)}`
 
-    const enh = useEnhancers ? (', ' + pickEnhancers()) : ''
+    // Mode-specific animation block
+    let animBlock = ""
+    if (mode === "2d") {
+      animBlock = `, animation: 2D smooth ${duration}s @ ${fps}fps, easing ${easing}, physics:${physics ? "realistic" : "stylized"}, style: hand-painted -> photoreal blend`
+    } else if (mode === "3d") {
+      animBlock = `, animation: 3D cinematic ${duration}s @ ${fps}fps, camera: dolly/orbit, lens: ${lens}, physical lighting, real-world physics ${physics ? "ON" : "OFF"}`
+    }
 
-    // Compose final prompt with hashtags style blocks separated visually for parsing
-    return `#prompt_${idx + 1}\n#token stills archive, ${s}\n#studio ${s}\n#lighting ${l}\n#weather ${w}\n#camera ${c}\n#tone ${t}\n#subject ${subject}\n#final stills archive, ${s} — cinematic movie still of ${subject} ${action}, ${l} lighting, ${w}, captured on ${c}, ${t} tone${enh}, 35mm film texture, depth-of-field composition, dramatic cinematic grading —ar 2.39:1 --q 2 --v 6`
+    // Compose final single-paragraph prompt (with hashtags metadata for parsing)
+    const prompt = `#prompt_${idx+1}
+#mode ${mode}
+#token stills archive, ${s}
+#studio ${s}
+#lighting ${l}
+#weather ${w}
+#camera ${c}
+#lens ${lens}
+#tone ${t}
+#subject ${subject}
+#final stills archive, ${s} — cinematic ${mode === "image" ? "movie still" : (mode === "2d" ? "2D animated still" : "3D animated shot")} of ${subject} ${action}, ${l} lighting, ${w} conditions, captured using ${c} with ${lens}, ${t} tone, ${filmTokens}${animBlock} —ar 2.39:1 --q 2 --v 6`
+
+    return prompt
   }
 
-  function generate() {
-    if (!subject.trim()) return alert('Please enter a subject or scene')
-    const results = []
-    for (let i = 0; i < 10; i++) {
-      results.push(buildSinglePrompt(i, studio, lighting, weather, camera, tone))
+  function generateAll() {
+    if (!subject.trim()) return alert("Please enter a subject or scene.")
+    applyPreset(preset)
+    const out = []
+    for (let i=0;i<10;i++){
+      out.push(buildPromptVariant(i))
     }
-    setPrompts(results)
+    setPrompts(out)
   }
 
   function copyAll() {
     if (!prompts.length) return
-    const text = prompts.join('\n\n')
+    const text = prompts.join("\n\n")
     navigator.clipboard.writeText(text)
     setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+    setTimeout(()=>setCopied(false),2000)
+  }
+
+  function downloadJSON() {
+    const payload = {subject, mode, studio, lighting, weather, camera, lens, tone, duration, fps, easing, physics, grain, bloom, saturation, prompts}
+    const blob = new Blob([JSON.stringify(payload,null,2)], {type:"application/json"})
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = "stills_prompts.json"
+    a.click()
+    URL.revokeObjectURL(url)
   }
 
   return (
     <div className="min-h-screen bg-black text-white p-6">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <header className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold">Stills Archive — Pro Mode</h1>
-            <p className="text-sm text-neutral-400">Dark cinematic UI • Electric blue accents</p>
+            <p className="text-sm text-neutral-400">Advanced image + 2D/3D animation prompt studio • Electric blue accents</p>
           </div>
-          <nav>
+          <nav className="space-x-4">
             <a href="/" className="text-sm text-neutral-300 underline">← Quick Mode</a>
+            <span className="px-3 py-1 rounded text-xs bg-blue-700">Live</span>
           </nav>
         </header>
 
-        <section className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="col-span-1 md:col-span-2 space-y-4">
-            <div className="bg-neutral-900 p-4 rounded-lg border border-neutral-800">
-              <label className="block text-xs text-neutral-400 mb-2">Subject</label>
-              <input value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Describe your subject..." className="w-full p-3 rounded bg-neutral-800 text-white outline-none" />
+        <div className="grid md:grid-cols-3 gap-6">
+          <div className="md:col-span-2 space-y-4">
+            <ControlsPanel
+              subject={subject} setSubject={setSubject}
+              mode={mode} setMode={setMode}
+              studio={studio} setStudio={setStudio}
+              lighting={lighting} setLighting={setLighting}
+              weather={weather} setWeather={setWeather}
+              camera={camera} setCamera={setCamera}
+              lens={lens} setLens={setLens}
+              tone={tone} setTone={setTone}
+              preset={preset} setPreset={setPreset}
+              applyPreset={()=>applyPreset(preset)}
+              duration={duration} setDuration={setDuration}
+              fps={fps} setFps={setFps}
+              easing={easing} setEasing={setEasing}
+              physics={physics} setPhysics={setPhysics}
+              grain={grain} setGrain={setGrain}
+              bloom={bloom} setBloom={setBloom}
+              saturation={saturation} setSaturation={setSaturation}
+            />
 
-              <div className="mt-4 grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-xs text-neutral-400">Studio</label>
-                  <select value={studio} onChange={(e) => setStudio(e.target.value)} className="w-full p-2 rounded bg-neutral-800">
-                    <option value="random">Random</option>
-                    {studios.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </div>
-                <div>
-                  <label className="block text-xs text-neutral-400">Lighting</label>
-                  <select value={lighting} onChange={(e) => setLighting(e.target.value)} className="w-full p-2 rounded bg-neutral-800">
-                    <option value="random">Random</option>
-                    {lightings.map(l => <option key={l} value={l}>{l}</option>)}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs text-neutral-400">Weather</label>
-                  <select value={weather} onChange={(e) => setWeather(e.target.value)} className="w-full p-2 rounded bg-neutral-800">
-                    <option value="random">Random</option>
-                    {weathers.map(w => <option key={w} value={w}>{w}</option>)}
-                  </select>
-                </div>
-
-                <div>
-                  <label className="block text-xs text-neutral-400">Camera</label>
-                  <select value={camera} onChange={(e) => setCamera(e.target.value)} className="w-full p-2 rounded bg-neutral-800">
-                    <option value="random">Random</option>
-                    {cameras.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
-                </div>
-
-                <div className="col-span-2">
-                  <label className="block text-xs text-neutral-400">Tone / Emotion</label>
-                  <select value={tone} onChange={(e) => setTone(e.target.value)} className="w-full p-2 rounded bg-neutral-800">
-                    <option value="random">Random</option>
-                    {tones.map(t => <option key={t} value={t}>{t}</option>)}
-                  </select>
-                </div>
-              </div>
-
-              <div className="mt-4 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <label className="text-sm text-neutral-300">Variation Mode</label>
-                  <button onClick={() => setVariationMode(!variationMode)} className={`px-3 py-1 rounded ${variationMode ? 'bg-blue-600' : 'bg-neutral-700'}`}>{variationMode ? 'ON' : 'OFF'}</button>
-
-                  <label className="text-sm text-neutral-300">Cinematic Enhancers</label>
-                  <button onClick={() => setUseEnhancers(!useEnhancers)} className={`px-3 py-1 rounded ${useEnhancers ? 'bg-blue-600' : 'bg-neutral-700'}`}>{useEnhancers ? 'ON' : 'OFF'}</button>
-                </div>
-
-                <div className="flex gap-2">
-                  <button onClick={generate} className="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded font-semibold">Generate 10 Prompts</button>
-                  <button onClick={copyAll} className="bg-neutral-800 border border-neutral-700 px-4 py-2 rounded text-sm">Copy All</button>
-                </div>
-              </div>
+            <div className="flex gap-3">
+              <button onClick={generateAll} className="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded font-semibold">Generate 10 Prompts</button>
+              <button onClick={copyAll} className="bg-neutral-800 border border-neutral-700 px-4 py-2 rounded">Copy All</button>
+              <button onClick={downloadJSON} className="bg-neutral-800 border border-neutral-700 px-4 py-2 rounded">Export JSON</button>
+              {copied && <div className="text-blue-400 px-2">✅ Copied</div>}
             </div>
 
-            <div className="mt-4 p-4 bg-neutral-900 rounded border border-neutral-800">
-              <h3 className="text-sm text-neutral-300 mb-2">Generated Prompts</h3>
-              {prompts.length === 0 && <p className="text-neutral-500 text-sm">No prompts yet. Enter a subject and click Generate.</p>}
-              <div className="space-y-3">
-                {prompts.map((p, i) => (
-                  <pre key={i} className="p-3 bg-black/60 rounded text-xs text-white whitespace-pre-wrap">{p}</pre>
-                ))}
-              </div>
-            </div>
-
+            <PromptList prompts={prompts} />
           </div>
 
-          <aside className="col-span-1 bg-neutral-900 p-4 rounded-lg border border-neutral-800">
+          <aside className="bg-neutral-900 p-4 rounded border border-neutral-800">
             <h4 className="text-sm font-medium mb-2">Quick Presets</h4>
             <div className="space-y-2">
-              <button onClick={() => { setStudio('A24 .com'); setLighting('overcast soft'); setWeather('light rain'); setCamera('ARRI Alexa 65, Zeiss 50mm'); setTone('melancholic') }} className="w-full text-left px-3 py-2 rounded bg-neutral-800">Indie Melancholy (A24)</button>
-              <button onClick={() => { setStudio('Universal .com'); setLighting('golden hour'); setWeather('clear sky'); setCamera('Panavision DXL2, Cooke S4/i 75mm'); setTone('heroic') }} className="w-full text-left px-3 py-2 rounded bg-neutral-800">Epic Heroic (Universal)</button>
-              <button onClick={() => { setStudio('Disney .com'); setLighting('twilight rim'); setWeather('clear sky'); setCamera('Leica SL2, Summilux 35mm'); setTone('dreamlike') }} className="w-full text-left px-3 py-2 rounded bg-neutral-800">Fantasy Magical (Disney)</button>
+              <button onClick={()=>{ setPreset("indie-melancholy"); applyPreset("indie-melancholy") }} className="w-full px-3 py-2 rounded bg-neutral-800">Indie Melancholy</button>
+              <button onClick={()=>{ setPreset("epic-heroic"); applyPreset("epic-heroic") }} className="w-full px-3 py-2 rounded bg-neutral-800">Epic Heroic</button>
+              <button onClick={()=>{ setPreset("neon-sci"); applyPreset("neon-sci") }} className="w-full px-3 py-2 rounded bg-neutral-800">Neon Sci-Fi</button>
+              <button onClick={()=>{ setPreset("ghibli-2d"); applyPreset("ghibli-2d") }} className="w-full px-3 py-2 rounded bg-neutral-800">Ghibli 2D</button>
             </div>
 
-            <div className="mt-6">
-              <h5 className="text-sm font-medium mb-2">Tips</h5>
-              <ul className="text-xs text-neutral-400 list-disc pl-4 space-y-1">
-                <li>Try Variation Mode ON for unique actions per prompt.</li>
-                <li>Toggle Enhancers OFF for simple base prompts.</li>
-                <li>Use Copy All to paste into Midjourney or Nano Banana.</li>
+            <div className="mt-6 text-xs text-neutral-400">
+              <p className="mb-2">Tips</p>
+              <ul className="list-disc pl-4 space-y-1">
+                <li>Use <strong>Mode = 2D</strong> for smooth, frame-aware style prompts (good for Nano Banana / stylized pipelines).</li>
+                <li>Use <strong>Mode = 3D</strong> for camera-centric prompts (targeting 3D render bake workflows or photoreal virtual production).</li>
+                <li>Export JSON to run batch renders or store metadata for later VFX pipelines.</li>
               </ul>
             </div>
-
-            {copied && <p className="mt-4 text-blue-400 text-sm">✅ Copied!</p>}
           </aside>
-        </section>
+        </div>
 
-        <footer className="mt-8 text-xs text-neutral-500">Made with cinematic love — deploy updated on save.</footer>
       </div>
     </div>
   )
