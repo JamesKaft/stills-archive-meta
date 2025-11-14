@@ -4,11 +4,15 @@ import { useState } from "react"
 import ControlsPanel from "./components/ControlsPanel"
 import PromptList from "./components/PromptList"
 
+/**
+ * Pro Mode — page.jsx
+ * Medium Safety Transformer + NanoBanana AR engine
+ */
+
 export default function ProPage() {
-  // --- state (defaults) ---
   const defaultState = {
     subject: "",
-    mode: "image", // image | 2d | 3d
+    mode: "image",
     studio: "random",
     lighting: "random",
     weather: "random",
@@ -22,9 +26,10 @@ export default function ProPage() {
     physics: true,
     grain: 0.4,
     bloom: 0.3,
-    saturation: 0,
+    saturation: 0
   }
 
+  // state
   const [subject, setSubject] = useState(defaultState.subject)
   const [mode, setMode] = useState(defaultState.mode)
   const [studio, setStudio] = useState(defaultState.studio)
@@ -42,17 +47,19 @@ export default function ProPage() {
   const [bloom, setBloom] = useState(defaultState.bloom)
   const [saturation, setSaturation] = useState(defaultState.saturation)
 
+  const [modelEngine, setModelEngine] = useState("NanoBanana")
+  const [aspectRatio, setAspectRatio] = useState("2.39:1")
   const [prompts, setPrompts] = useState([])
   const [copied, setCopied] = useState(false)
 
-  // --- lists ---
+  // lists
   const studios = ["Universal .com","A24 .com","Warner Bros .com","Disney .com","Netflix .com","Paramount .com","Sony Pictures .com","Columbia .com"]
   const lightings = ["golden hour","neon night","overcast soft","candlelit low","studio key & fill","volumetric backlight"]
   const weathers = ["clear","light rain","heavy rain","fog","sandstorm","snow"]
   const cameras = ["ARRI Alexa 65","RED Komodo 6K","Sony Venice 2","Leica SL2","Panavision DXL2","Blackmagic URSA 12K"]
   const tones = ["epic","melancholic","dreamlike","ominous","heroic","intimate"]
 
-  // --- preset pack (starter set) ---
+  // presets
   const presets = {
     "none": {},
     "indie-melancholy": {studio:"A24 .com", lighting:"overcast soft", weather:"light rain", tone:"melancholic"},
@@ -61,10 +68,9 @@ export default function ProPage() {
     "ghibli-2d": {studio:"Studio Ghibli .com", lighting:"golden hour", weather:"clear", tone:"dreamlike", mode:"2d"},
     "dune-desert": {studio:"Paramount .com", lighting:"high noon hard light", weather:"sandstorm", tone:"epic"},
     "noir-bleach": {studio:"Warner Bros .com", lighting:"candlelit low", weather:"fog", tone:"ominous"},
-    "rainy-bluish": {studio:"Netflix .com", lighting:"volumetric backlight", weather:"heavy rain", tone:"melancholic"},
+    "rainy-bluish": {studio:"Netflix .com", lighting:"volumetric backlight", weather:"heavy rain", tone:"melancholic"}
   }
 
-  // --- utilities ---
   function applyPreset(name) {
     if (!name || name === "none") return
     const p = presets[name] || {}
@@ -100,6 +106,101 @@ export default function ProPage() {
     return list[Math.floor(Math.random()*list.length)]
   }
 
+  // ----------------------
+  // Safety Transformer (Medium)
+  // a set of targeted rewrite rules that transform literal triggers
+  // into safe cinematic descriptions, while keeping expressiveness.
+  // ----------------------
+  function safetyTransformText(text) {
+    if (!text) return text
+    let out = String(text)
+
+    // Lighting / object triggers -> non-objective phrases
+    out = out.replace(/\bcandlelit\b/gi, "warm low-key ambient glow with golden falloff (no visible candles)")
+    out = out.replace(/\bcandlelight\b/gi, "warm golden ambient illumination (no visible candles)")
+    out = out.replace(/\bspotlight\b/gi, "focused highlight sculpting the subject")
+    out = out.replace(/\bstage light(s)?\b/gi, "professional soft illumination")
+    out = out.replace(/\bneon-lit\b/gi, "vibrant edge-lit neon tones (no neon signs visible)")
+    out = out.replace(/\bneon\b/gi, "vibrant edge-lit highlights")
+    out = out.replace(/\bheadlight(s)?\b/gi, "directional rim highlights")
+
+    // Camera / lens -> visual style phrasing (avoid camera bodies in frame)
+    out = out.replace(/\bshot on\s+ARRI\s*Alexa\s*65\b/gi, "ARRI-style color science and cinematic depth")
+    out = out.replace(/\bARRI\s*Alexa\s*65\b/gi, "ARRI-style color profile")
+    out = out.replace(/\bRED\s*Komodo\b/gi, "high-end cinematic color profile")
+    out = out.replace(/\b(shot on|captured using|captured with)\s*(a|an)?\s*(camera|ARRI|RED|Blackmagic|Sony|Panavision)[^.,;]*/gi,
+                      (m) => m.replace(/(shot on|captured using|captured with)/gi, "rendered with").replace(/camera/gi,""))
+    // common numeric lens mentions -> translate to "shot with Xmm-style field of view"
+    out = out.replace(/\b(\d{2,3})mm\b/gi, (m, mm) => ` ${mm}mm-style field of view`)
+    out = out.replace(/\b50mm-style field of view mm-style?/gi, "50mm-style field of view") // idempotent
+
+    // Avoid literal 'frame' or 'picture frame'
+    out = out.replace(/\bframe\b/gi, "composition")
+    out = out.replace(/\bpicture frame\b/gi, "compositional frame")
+
+    // Environment triggers -> mood-only phrases
+    out = out.replace(/\bfoggy\b/gi, "soft muted atmosphere with gentle diffusion (subtle haze, no dense fog props)")
+    out = out.replace(/\bfog\b/gi, "subtle atmospheric haze")
+    out = out.replace(/\brainy\b/gi, "cool reflective surfaces and moisture-inspired sheen")
+    out = out.replace(/\brain\b/gi, "light reflective moisture sheen")
+    out = out.replace(/\bsmoke\b/gi, "soft volumetric diffusion (no smoke props)")
+    out = out.replace(/\bdusty\b/gi, "warm textured ambience with subtle particulate glow")
+    out = out.replace(/\bsandstorm\b/gi, "fine wind-driven particulate atmosphere (no flying debris)")
+
+    // Avoid clothing / accessory injection by rewriting 'vibe' or 'style' into color/lighting
+    out = out.replace(/\bstreet vibe\b/gi, "urban-inspired cinematic mood without adding clothing props")
+    out = out.replace(/\bcozy scene\b/gi, "intimate warm atmosphere (no furniture added)")
+    out = out.replace(/\bromantic\b/gi, "warm intimate emotional tone")
+
+    // Avoid explicit 'add X' or 'with X props' patterns
+    out = out.replace(/\bwith (a )?(camera|tripod|lens|microphone|boom|lights|lighting rig)\b/gi, "")
+    out = out.replace(/\bfeaturing (a )?(camera|tripod|lens|microphone|boom)\b/gi, "")
+
+    // Magic / energy / effects -> only if explicitly requested keep as 'subtle'
+    out = out.replace(/\bglow(ing)?\b/gi, "soft luminous glow (subtle)")
+    out = out.replace(/\bsparks?\b/gi, "small spark-like highlights (subtle, no particles)")
+    out = out.replace(/\baura\b/gi, "soft halo of backlight")
+
+    // Facial feature protections
+    out = out.replace(/\bexaggerated (expression|features)\b/gi, "subtle dramatic expression")
+    out = out.replace(/\bintense expression\b/gi, "subtle dramatic tension in the face")
+
+    // Final safety blanket for Medium mode (keeps creative freedom but forbids unexpected objects)
+    const safetySuffix = " — without introducing additional objects, props, equipment, or visible camera gear, keep the scene cinematic and clean."
+
+    // avoid double-appending if already present
+    if (!/without introducing additional objects/i.test(out)) {
+      out = out + safetySuffix
+    }
+
+    return out
+  }
+
+  // ----------------------
+  // Aspect Ratio Engine (already tailored for NanoBanana vs Midjourney)
+  // ----------------------
+  function getARInstruction(engine, ar) {
+    const map = {
+      "1:1": { nano: "square 1:1 composition, centered composition", mj: "--ar 1:1" },
+      "4:5": { nano: "vertical portrait composition, full-body balanced framing", mj: "--ar 4:5" },
+      "3:2": { nano: "classic 3:2 photography aspect, balanced composition", mj: "--ar 3:2" },
+      "16:9": { nano: "widescreen 16:9 landscape composition", mj: "--ar 16:9" },
+      "20:9": { nano: "tall phone portrait cinematic composition", mj: "--ar 20:9" },
+      "9:16": { nano: "vertical portrait composition, cinematic 9:16 framing", mj: "--ar 9:16" },
+      "2.39:1": { nano: "ultra-wide anamorphic frame, cinematic widescreen composition", mj: "--ar 2.39:1" },
+      "IMAX": { nano: "IMAX-style tall frame, grand scale composition", mj: "--ar 1.90:1" }
+    }
+    const picked = map[ar] || map["2.39:1"]
+    if (engine && engine.toLowerCase().includes("midjourney")) {
+      return { body: "", flag: picked.mj || "" }
+    } else {
+      return { body: picked.nano, flag: "" }
+    }
+  }
+
+  // ----------------------
+  // Build single prompt (applies safetyTransform to the subject and art directives)
+  // ----------------------
   function buildPromptVariant(idx) {
     const s = choose(studios, studio)
     const l = choose(lightings, lighting)
@@ -107,7 +208,6 @@ export default function ProPage() {
     const c = choose(cameras, camera)
     const t = choose(tones, tone)
 
-    // actions for variation
     const actions = [
       "walking across a vast wasteland",
       "trudging through cracked desert",
@@ -122,11 +222,11 @@ export default function ProPage() {
     ]
     const action = actions[idx % actions.length]
 
-    // film tokens and safe camera phrasing to avoid camera appearing in-frame
-    const filmTokens = `35mm film texture, film grain ${grain.toFixed(2)}, bloom ${bloom.toFixed(2)}, saturation ${saturation.toFixed(2)}`
-    const lensPhrase = lens ? `shot on ${lens} lens, ARRI color science` : `shot on ${lens}`
+    // Safe lens phrasing: avoid explicit camera bodies in subject
+    const lensPhrase = lens ? `shot with ${lens} lens, ARRI color science` : ""
 
-    // animation / motion block
+    const filmTokens = `35mm film texture, film grain ${grain.toFixed(2)}, bloom ${bloom.toFixed(2)}, saturation ${saturation.toFixed(2)}`
+
     let animBlock = ""
     if (mode === "2d") {
       animBlock = `, animation: 2D smooth ${duration}s @${fps}fps, easing ${easing}, physics:${physics ? "realistic" : "stylized"}, style: hand-painted -> photoreal blend`
@@ -134,8 +234,16 @@ export default function ProPage() {
       animBlock = `, animation: 3D cinematic ${duration}s @${fps}fps, camera motion: dolly/orbit, lens: ${lens}, physical lighting, physics:${physics ? "ON" : "OFF"}`
     }
 
-    // final prompt uses safe camera wording (no "camera in frame")
-    const final = `#prompt_${idx+1}
+    // Build base (subject + directives)
+    let rawSubject = `${subject} ${action}`
+    // safety transform the raw subject and other descriptors
+    const safeSubjectBlock = safetyTransformText(rawSubject)
+
+    // aspect
+    const arInstr = getARInstruction(modelEngine, aspectRatio)
+
+    // Compose final prompt
+    let base = `#prompt_${idx+1}
 #mode ${mode}
 #token stills archive, ${s}
 #studio ${s}
@@ -145,14 +253,21 @@ export default function ProPage() {
 #lens ${lens}
 #tone ${t}
 #subject ${subject}
-#final stills archive, ${s} — cinematic ${mode === "image" ? "movie still" : (mode === "2d" ? "2D animated still" : "3D animated shot")} of ${subject} ${action}, ${l} lighting, ${w} conditions, ${lensPhrase}, ${t} tone, ${filmTokens}${animBlock} —ar 2.39:1 --q 2 --v 6`
+#final stills archive, ${s} — cinematic ${mode === "image" ? "movie still" : (mode === "2d" ? "2D animated still" : "3D animated shot")} of ${safeSubjectBlock}, ${l} lighting, ${w} conditions, ${lensPhrase}, ${t} tone, ${filmTokens}${animBlock}`
 
-    return final
+    // Append AR phrasing or flags depending on model
+    if (arInstr.body) base = base + `, ${arInstr.body}`
+    if (arInstr.flag && modelEngine.toLowerCase().includes("midjourney")) {
+      base = base + ` ${arInstr.flag} --q 2 --v 6`
+    } else {
+      base = base + `, high-fidelity, photorealistic, ultra-detailed`
+    }
+
+    return base
   }
 
   function generateAll() {
     if (!subject.trim()) { alert("Please enter a subject or scene."); return }
-    // apply preset if chosen
     applyPreset(preset)
     const out = []
     for (let i=0;i<10;i++) out.push(buildPromptVariant(i))
@@ -168,7 +283,7 @@ export default function ProPage() {
   }
 
   function downloadJSON() {
-    const payload = {meta:{subject,mode,studio,lighting,weather,camera,lens,tone,duration,fps,easing,physics,grain,bloom,saturation},prompts}
+    const payload = {meta:{subject,modelEngine,aspectRatio,mode,studio,lighting,weather,camera,lens,tone,duration,fps,easing,physics,grain,bloom,saturation},prompts}
     const blob = new Blob([JSON.stringify(payload,null,2)], {type:"application/json"})
     const url = URL.createObjectURL(blob)
     const a = document.createElement("a")
@@ -184,7 +299,7 @@ export default function ProPage() {
         <header className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold">Stills Archive — Pro Mode</h1>
-            <p className="text-sm text-neutral-400">Advanced image + 2D/3D animation prompt studio • Electric blue accents</p>
+            <p className="text-sm text-neutral-400">Advanced image + 2D/3D animation prompt studio • Electric blue accents • Safety: Medium</p>
           </div>
           <nav className="space-x-4">
             <a href="/" className="text-sm text-neutral-300 underline">← Quick Mode</a>
@@ -212,6 +327,8 @@ export default function ProPage() {
               grain={grain} setGrain={setGrain}
               bloom={bloom} setBloom={setBloom}
               saturation={saturation} setSaturation={setSaturation}
+              modelEngine={modelEngine} setModelEngine={setModelEngine}
+              aspectRatio={aspectRatio} setAspectRatio={setAspectRatio}
             />
 
             <div className="flex gap-3">
@@ -240,9 +357,9 @@ export default function ProPage() {
             <div className="mt-6 text-xs text-neutral-400">
               <p className="mb-2">Tips</p>
               <ul className="list-disc pl-4 space-y-1">
-                <li>Use <strong>Mode = 2D</strong> for smooth, frame-aware style prompts (good for Nano Banana).</li>
-                <li>Use <strong>Mode = 3D</strong> for camera-centric prompts and CGI pipelines.</li>
-                <li>Export JSON to run batch renders or store metadata for VFX pipelines.</li>
+                <li>Model selector changes prompt format (NanoBanana vs Midjourney).</li>
+                <li>Aspect engine converts numeric AR into safe phrasing for NanoBanana and flags for Midjourney.</li>
+                <li>Safety Transformer (Medium) rewrites risky tokens into safe cinematic language and adds a protective suffix.</li>
               </ul>
             </div>
           </aside>
