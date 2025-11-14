@@ -49,6 +49,9 @@ export default function ControlsPanel(props) {
             <option value="epic-heroic">Epic Heroic</option>
             <option value="neon-sci">Neon Sci</option>
             <option value="ghibli-2d">Ghibli 2D</option>
+            <option value="dune-desert">Dune Desert</option>
+            <option value="noir-bleach">Noir Bleach</option>
+            <option value="rainy-bluish">Rainy Bluish</option>
           </select>
         </div>
 
@@ -132,8 +135,8 @@ export default function ControlsPanel(props) {
       </div>
 
       <div className="mt-3 flex gap-2">
-        <button onClick={applyPreset} className="bg-blue-600 px-3 py-2 rounded">Apply Preset</button>
-        <button onClick={()=>{ setPreset("none"); setStudio("random"); setLighting("random"); setWeather("random"); setCamera("random"); setTone("random") }} className="bg-neutral-800 px-3 py-2 rounded">Reset</button>
+        <button onClick={applyPreset} className="text-base px-3 py-1.5 bg-blue-600 rounded">Apply Preset</button>
+        <button onClick={()=>{ setPreset("none"); setStudio("random"); setLighting("random"); setWeather("random"); setCamera("random"); setTone("random") }} className="text-base px-3 py-1.5 bg-neutral-800 rounded">Reset Panel</button>
       </div>
     </div>
   )
