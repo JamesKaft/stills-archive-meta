@@ -1,15 +1,12 @@
 // app/layout.jsx
-export const metadata = {
-  title: "Stills Archive Meta Generator",
-  description: "Generate cinematic stills-archive style AI prompts",
-};
-
+import './globals.css'
+export const metadata = { title: "Stills Archive Meta Generator" }
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <body className="bg-black text-white font-sans">
+      <body className="bg-black text-white min-h-screen">
         {children}
       </body>
     </html>
-  );
+  )
 }
