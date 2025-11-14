@@ -16,7 +16,9 @@ export default function ControlsPanel(props) {
     physics, setPhysics,
     grain, setGrain,
     bloom, setBloom,
-    saturation, setSaturation
+    saturation, setSaturation,
+    modelEngine, setModelEngine,
+    aspectRatio, setAspectRatio
   } = props
 
   const studios = ["random","Universal .com","A24 .com","Warner Bros .com","Disney .com","Netflix .com","Paramount .com","Sony Pictures .com"]
@@ -25,6 +27,9 @@ export default function ControlsPanel(props) {
   const cameras = ["random","ARRI Alexa 65","RED Komodo 6K","Sony Venice 2","Leica SL2","Panavision DXL2","Blackmagic URSA 12K"]
   const tones = ["random","epic","melancholic","dreamlike","ominous","heroic","intimate"]
   const easings = ["smooth","ease-in-out","linear","spring"]
+
+  const modelOptions = ["NanoBanana","Midjourney V6","Midjourney V5","Midjourney Niji","Stable Diffusion XL"]
+  const aspectOptions = ["1:1","4:5","3:2","16:9","20:9","9:16","2.39:1","IMAX"]
 
   return (
     <div className="bg-neutral-900 p-4 rounded border border-neutral-800">
@@ -38,6 +43,20 @@ export default function ControlsPanel(props) {
             <option value="image">Image</option>
             <option value="2d">2D Animation (smooth)</option>
             <option value="3d">3D Animation (cinematic)</option>
+          </select>
+        </div>
+
+        <div>
+          <label className="text-xs text-neutral-400">Model Engine</label>
+          <select value={modelEngine} onChange={e=>setModelEngine(e.target.value)} className="w-full p-2 rounded bg-neutral-800">
+            {modelOptions.map(m => <option key={m} value={m}>{m}</option>)}
+          </select>
+        </div>
+
+        <div>
+          <label className="text-xs text-neutral-400">Aspect Ratio</label>
+          <select value={aspectRatio} onChange={e=>setAspectRatio(e.target.value)} className="w-full p-2 rounded bg-neutral-800">
+            {aspectOptions.map(a => <option key={a} value={a}>{a}</option>)}
           </select>
         </div>
 
