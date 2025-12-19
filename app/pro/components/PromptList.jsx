@@ -1,14 +1,43 @@
 "use client"
-export default function PromptList({prompts=[]}) {
-  if (!prompts || !prompts.length) return <div className="p-4 bg-neutral-900 rounded">No prompts yet</div>
+
+export default function PromptList({ prompts = [] }) {
+  if (!prompts.length) return null
+
+  function copyPrompt(text) {
+    navigator.clipboard.writeText(text)
+  }
+
   return (
-    <div className="mt-4 p-4 bg-neutral-900 rounded border border-neutral-800">
-      <h3 className="text-sm text-neutral-300 mb-2">Generated Prompts</h3>
-      <div className="space-y-3">
-        {prompts.map((p,i)=>(
-          <pre key={i} className="p-3 bg-black/60 rounded text-xs whitespace-pre-wrap">{p}</pre>
-        ))}
-      </div>
+    <div className="space-y-4 mt-6">
+      {prompts.map((prompt, index) => {
+        // Format prompt visually with line breaks (display only)
+        const displayPrompt = prompt
+          .replace(/ — /g, "\n— ")
+          .replace(/, (?=[A-Z])/g, ",\n")
+        
+        return (
+          <div
+            key={index}
+            className="bg-neutral-900 border border-neutral-800 rounded-lg p-4"
+          >
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="text-sm font-semibold text-neutral-300">
+                Prompt {String(index + 1).padStart(2, "0")}
+              </h3>
+              <button
+                onClick={() => copyPrompt(prompt)}
+                className="text-xs px-2 py-1 rounded bg-blue-600 hover:bg-blue-700"
+              >
+                Copy
+              </button>
+            </div>
+
+            <pre className="text-sm text-neutral-200 whitespace-pre-wrap leading-relaxed">
+              {displayPrompt}
+            </pre>
+          </div>
+        )
+      })}
     </div>
   )
 }
