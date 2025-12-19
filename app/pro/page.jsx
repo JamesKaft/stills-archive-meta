@@ -82,24 +82,10 @@ export default function ProPage() {
   }
 
   function resetAll() {
-    setSubject(defaultState.subject)
-    setMode(defaultState.mode)
-    setStudio(defaultState.studio)
-    setLighting(defaultState.lighting)
-    setWeather(defaultState.weather)
-    setCamera(defaultState.camera)
-    setLens(defaultState.lens)
-    setTone(defaultState.tone)
-    setPreset(defaultState.preset)
-    setDuration(defaultState.duration)
-    setFps(defaultState.fps)
-    setEasing(defaultState.easing)
-    setPhysics(defaultState.physics)
-    setGrain(defaultState.grain)
-    setBloom(defaultState.bloom)
-    setSaturation(defaultState.saturation)
-    setPrompts([])
-  }
+  setSubject("")
+  setPrompts([])
+}
+
 
   function choose(list, forced) {
     if (forced && forced !== "random") return forced
@@ -368,3 +354,4 @@ export default function ProPage() {
     </div>
   )
 }
+
