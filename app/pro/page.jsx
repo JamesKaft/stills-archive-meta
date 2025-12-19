@@ -5,10 +5,19 @@ import PromptList from "./components/PromptList"
 
 export default function ProGenerator() {
   const [subject, setSubject] = useState("")
+  const [model, setModel] = useState("nano")
+  const [aspect, setAspect] = useState("cinematic widescreen")
   const [lighting, setLighting] = useState("neutral cinematic lighting")
   const [tone, setTone] = useState("dramatic")
   const [composition, setComposition] = useState("natural framing")
   const [prompts, setPrompts] = useState([])
+
+  function buildAspectPhrase() {
+    if (model === "nano") {
+      return `cinematic ${aspect} composition`
+    }
+    return `--ar ${aspect}`
+  }
 
   function generatePrompts() {
     if (!subject.trim()) return
@@ -26,8 +35,10 @@ export default function ProGenerator() {
       "stills archive, MGM.com"
     ]
 
+    const aspectPhrase = buildAspectPhrase()
+
     const generated = studios.map((studio) => {
-      return `${studio} — cinematic movie still, ${lighting}, ${tone} tone, ${composition}, hyper-realistic, no props, no equipment, no text, no logos, subject: ${subject}`
+      return `${studio} — cinematic movie still, ${lighting}, ${tone} tone, ${composition}, ${aspectPhrase}, hyper-realistic, no props, no equipment, no text, no logos, subject: ${subject}`
     })
 
     setPrompts(generated)
@@ -41,7 +52,7 @@ export default function ProGenerator() {
   return (
     <main className="min-h-screen bg-neutral-950 text-neutral-100 p-6">
       <h1 className="text-xl font-semibold mb-4">
-        Stills Archive Meta Generator — Pro
+        Stills Archive Meta Generator — Pro Studio
       </h1>
 
       <div className="space-y-4 max-w-3xl">
@@ -51,6 +62,31 @@ export default function ProGenerator() {
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
         />
+
+        <div className="grid grid-cols-2 gap-3 text-sm">
+          <select
+            value={model}
+            onChange={(e) => setModel(e.target.value)}
+            className="bg-neutral-900 border border-neutral-800 rounded p-2"
+          >
+            <option value="nano">Nano Banana</option>
+            <option value="mj">Midjourney</option>
+          </select>
+
+          <select
+            value={aspect}
+            onChange={(e) => setAspect(e.target.value)}
+            className="bg-neutral-900 border border-neutral-800 rounded p-2"
+          >
+            <option value="cinematic widescreen">Cinematic Widescreen</option>
+            <option value="ultra-wide panoramic">Ultra-Wide Panoramic</option>
+            <option value="portrait vertical">Portrait Vertical</option>
+            <option value="square frame">Square Frame</option>
+            <option value="2.39:1">2.39:1</option>
+            <option value="16:9">16:9</option>
+            <option value="4:5">4:5</option>
+          </select>
+        </div>
 
         <div className="grid grid-cols-3 gap-3 text-sm">
           <select
