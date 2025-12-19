@@ -5,6 +5,9 @@ import PromptList from "./components/PromptList"
 
 export default function ProGenerator() {
   const [subject, setSubject] = useState("")
+  const [lighting, setLighting] = useState("neutral cinematic lighting")
+  const [tone, setTone] = useState("dramatic")
+  const [composition, setComposition] = useState("natural framing")
   const [prompts, setPrompts] = useState([])
 
   function generatePrompts() {
@@ -23,18 +26,8 @@ export default function ProGenerator() {
       "stills archive, MGM.com"
     ]
 
-    const baseDescriptors = [
-      "cinematic movie still",
-      "hyper-realistic lighting",
-      "35mm film texture",
-      "shallow depth of field",
-      "dramatic cinematic tone",
-      "natural composition",
-      "no props, no text, no logos, no equipment in frame"
-    ]
-
-    const generated = studios.map((studio, i) => {
-      return `${studio} — ${baseDescriptors.join(", ")}, subject: ${subject}`
+    const generated = studios.map((studio) => {
+      return `${studio} — cinematic movie still, ${lighting}, ${tone} tone, ${composition}, hyper-realistic, no props, no equipment, no text, no logos, subject: ${subject}`
     })
 
     setPrompts(generated)
@@ -58,6 +51,41 @@ export default function ProGenerator() {
           value={subject}
           onChange={(e) => setSubject(e.target.value)}
         />
+
+        <div className="grid grid-cols-3 gap-3 text-sm">
+          <select
+            value={lighting}
+            onChange={(e) => setLighting(e.target.value)}
+            className="bg-neutral-900 border border-neutral-800 rounded p-2"
+          >
+            <option>neutral cinematic lighting</option>
+            <option>soft low-key lighting</option>
+            <option>high-contrast cinematic lighting</option>
+            <option>natural ambient lighting</option>
+          </select>
+
+          <select
+            value={tone}
+            onChange={(e) => setTone(e.target.value)}
+            className="bg-neutral-900 border border-neutral-800 rounded p-2"
+          >
+            <option>dramatic</option>
+            <option>moody</option>
+            <option>intimate</option>
+            <option>epic</option>
+          </select>
+
+          <select
+            value={composition}
+            onChange={(e) => setComposition(e.target.value)}
+            className="bg-neutral-900 border border-neutral-800 rounded p-2"
+          >
+            <option>natural framing</option>
+            <option>cinematic wide composition</option>
+            <option>tight portrait framing</option>
+            <option>balanced symmetrical composition</option>
+          </select>
+        </div>
 
         <div className="flex gap-3">
           <button
